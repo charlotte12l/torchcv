@@ -78,12 +78,11 @@ class SingleShotDetector(object):
 
         # data_tuple: (inputs, heatmap, maskmap, vecmap)
         for i, data_dict in enumerate(self.train_loader):
-            Trainer.update(self, warm_list=(0,),
-                           warm_lr_list=(self.configer.get('solver', 'lr')['base_lr'],),
+            Trainer.update(self, backbone_list=(0,),
+                           backbone_lr_list=(self.configer.get('solver', 'lr')['base_lr'], ),
                            solver_dict=self.configer.get('solver'))
             self.data_time.update(time.time() - start_time)
             # Forward pass.
-            data_dict = RunnerHelper.to_device(self, data_dict)
             out = self.det_net(data_dict)
             loss_dict = self.det_loss(out)
             loss = loss_dict['loss']
@@ -130,7 +129,6 @@ class SingleShotDetector(object):
         with torch.no_grad():
             for j, data_dict in enumerate(self.val_loader):
                 # Forward pass.
-                data_dict = RunnerHelper.to_device(self, data_dict)
                 out = self.det_net(data_dict)
                 loss_dict = self.det_loss(out)
                 loss = loss_dict['loss']

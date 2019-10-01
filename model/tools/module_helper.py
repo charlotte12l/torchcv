@@ -107,7 +107,10 @@ class ModuleHelper(object):
 
     @staticmethod
     def load_model(model, pretrained=None, all_match=True, map_location='cpu'):
+        print(pretrained)
+
         if pretrained is None:
+            print('Yes')
             return model
 
         if not os.path.exists(pretrained):

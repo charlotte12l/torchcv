@@ -25,6 +25,7 @@ class FCNSegmentor(object):
       The class for Pose Estimation. Include train, val, val & predict.
     """
     def __init__(self, configer):
+        #print('1111')
         self.configer = configer
         self.batch_time = AverageMeter()
         self.data_time = AverageMeter()
@@ -34,20 +35,21 @@ class FCNSegmentor(object):
         self.seg_visualizer = SegVisualizer(configer)
         self.seg_model_manager = ModelManager(configer)
         self.seg_data_loader = DataLoader(configer)
-
+        #print('2222')
         self.seg_net = None
         self.train_loader = None
         self.val_loader = None
         self.optimizer = None
         self.scheduler = None
         self.runner_state = dict()
-
+        #print('3333')
         self._init_model()
-
+        #print('4444')
     def _init_model(self):
         self.seg_net = self.seg_model_manager.get_seg_model()
+        #print('5555')
         self.seg_net = RunnerHelper.load_net(self, self.seg_net)
-
+        #print('6666')
         self.optimizer, self.scheduler = Trainer.init(self._get_parameters(), self.configer.get('solver'))
 
         self.train_loader = self.seg_data_loader.get_trainloader()
@@ -78,7 +80,7 @@ class FCNSegmentor(object):
         # Adjust the learning rate after every epoch.
 
         for i, data_dict in enumerate(self.train_loader):
-            Trainer.update(self, warm_list=(0,), solver_dict=self.configer.get('solver'))
+            Trainer.update(self, backbone_list=(0, ), solver_dict=self.configer.get('solver'))
             self.data_time.update(time.time() - start_time)
 
             # Forward pass.
@@ -91,6 +93,9 @@ class FCNSegmentor(object):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+            #out.detach().cpu()
+            torch.cuda.empty_cache()
 
             # Update the vars of the train phase.
             self.batch_time.update(time.time() - start_time)
@@ -129,6 +134,9 @@ class FCNSegmentor(object):
         """
           Validation function during the train phase.
         """
+        if self.configer.get('local_rank') != 0:
+            return
+
         self.seg_net.eval()
         start_time = time.time()
 

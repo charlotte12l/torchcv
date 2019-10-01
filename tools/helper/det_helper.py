@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 # Author: Donny You(youansheng@gmail.com)
 
+import sys
+sys.path.append('/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv')
 
 import numpy as np
 import torch

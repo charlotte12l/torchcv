@@ -7,6 +7,9 @@
 import numpy as np
 
 from tools.util.logger import Logger as Log
+import sys
+sys.path.append('/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv')
+
 try:
     import pycocotools.mask as mask_util
 except ImportError:

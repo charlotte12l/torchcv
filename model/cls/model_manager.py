@@ -1,18 +1,31 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-# Author: Donny You(youansheng@gmail.com), Xiangtai(lxtpku@pku.edu.cn)
-# Select Cls Model for semantic segmentation.
+# Author: Donny You(youansheng@gmail.com)
+# Select Cls Model for pose detection.
 
 
-from model.cls.nets.cls_model import ClsModel
-from model.cls.nets.distill_model import DistillModel
-from model.cls.loss.loss import Loss
+import torch
+
+from model.cls.nets.mobilenet import MobileNet
+from model.cls.nets.vgg import VGG
+from model.cls.nets.shufflenetv2 import ShuffleNetV2, ShuffleResNetV2
+from model.cls.loss.cls_modules import ICCELoss, ICCenterLoss
 from tools.util.logger import Logger as Log
 
-
 CLS_MODEL_DICT = {
-    'cls_model': ClsModel,
-    'distill_model': DistillModel,
+    'vgg11': VGG,
+    'vgg13': VGG,
+    'vgg16': VGG,
+    'vgg19': VGG,
+    'mobilenet': MobileNet,
+    'shufflenetv2': ShuffleNetV2,
+    'shufflenetv2-50': ShuffleResNetV2,
+    'shufflenetv2-164': ShuffleResNetV2
+}
+
+CLS_LOSS_DICT = {
+    'ic_ce_loss': ICCELoss,
+    'ic_center_loss': ICCenterLoss
 }
 
 
@@ -29,11 +42,18 @@ class ModelManager(object):
             exit(1)
 
         model = CLS_MODEL_DICT[model_name](self.configer)
+
         return model
 
-    def get_cls_loss(self):
-        if self.configer.get('network', 'gather'):
-            return Loss(self.configer)
+    def get_cls_loss(self, loss_type=None):
+        key = self.configer.get('loss', 'loss_type') if loss_type is None else loss_type
+        if key not in CLS_LOSS_DICT:
+            Log.error('Loss: {} not valid!'.format(key))
+            exit(1)
 
-        from exts.tools.parallel.data_parallel import ParallelCriterion
-        return ParallelCriterion(Loss(self.configer))
+        loss = CLS_LOSS_DICT[key](self.configer)
+        if self.configer.get('network', 'loss_balance') and len(range(torch.cuda.device_count())) > 1:
+            from exts.tools.parallel.data_parallel import DataParallelCriterion
+            loss = DataParallelCriterion(loss)
+
+        return loss

@@ -4,22 +4,22 @@
 nvidia-smi
 PYTHON="python -u"
 
-WORK_DIR=$(cd $(dirname $0)/../../../;pwd)
-export PYTHONPATH=${WORK_DIR}:${PYTHONPATH}
-cd ${WORK_DIR}
+export PYTHONPATH="/home/donny/Projects/torchcv":${PYTHONPATH}
 
-DATA_DIR="/home/donny/DataSet/Cityscapes"
+cd ../../../
 
-BACKBONE="deepbase_resnet50_dilated8"
+DATA_DIR="/n/pfister_lab2/Lab/xingyu/Dataset/Cityscapes2"
+
+BACKBONE="deepbase_resnet101_dilated8"
 MODEL_NAME="deeplabv3"
 CHECKPOINTS_NAME="fs_deeplabv3_cityscapes_seg"$2
-PRETRAINED_MODEL="./pretrained_models/3x3resnet50-imagenet.pth"
+PRETRAINED_MODEL="/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv/pretrained_models/resnet101-imagenet.pth"
 
-CONFIG_FILE='configs/seg/cityscapes/base_fcn_cityscapes_seg.conf'
+CONFIG_FILE='/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv/configs/seg/cityscapes/base_fcn_cityscapes_seg.conf'
 MAX_ITERS=40000
 LOSS_TYPE="dsnohemce_loss"
 
-LOG_DIR="./log/seg/cityscapes/"
+LOG_DIR="/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv/log/seg/cityscapes/"
 LOG_FILE="${LOG_DIR}${CHECKPOINTS_NAME}.log"
 
 if [[ ! -d ${LOG_DIR} ]]; then
@@ -27,20 +27,18 @@ if [[ ! -d ${LOG_DIR} ]]; then
     mkdir -p ${LOG_DIR}
 fi
 
-export NCCL_LL_THRESHOLD=0
-
 NGPUS=4
 DIST_PYTHON="${PYTHON} -m torch.distributed.launch --nproc_per_node=${NGPUS}"
 
 if [[ "$1"x == "train"x ]]; then
-  ${DIST_PYTHON} main.py --config_file ${CONFIG_FILE} --phase train --train_batch_size 2 --val_batch_size 1 \
-                         --backbone ${BACKBONE} --model_name ${MODEL_NAME} --drop_last y --syncbn y --dist y \
+  ${DIST_PYTHON} /n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv/main.py --config_file ${CONFIG_FILE} --phase train --train_batch_size 2 --val_batch_size 1 --workers 1 \
+                         --backbone ${BACKBONE} --model_name ${MODEL_NAME} --drop_last y --syncbn y --distributed y \
                          --data_dir ${DATA_DIR} --loss_type ${LOSS_TYPE} --max_iters ${MAX_ITERS} \
                          --checkpoints_name ${CHECKPOINTS_NAME} --pretrained ${PRETRAINED_MODEL} 2>&1 | tee ${LOG_FILE}
 
 elif [[ "$1"x == "resume"x ]]; then
-  ${DIST_PYTHON} main.py --config_file ${CONFIG_FILE} --phase train --train_batch_size 2 --val_batch_size 1 \
-                         --backbone ${BACKBONE} --model_name ${MODEL_NAME} --drop_last y --syncbn y --dist y \
+  ${DIST_PYTHON} main.py --config_file ${CONFIG_FILE} --phase train --train_batch_size 2 --val_batch_size 1 --workers 1 \
+                         --backbone ${BACKBONE} --model_name ${MODEL_NAME} --drop_last y --syncbn y --distributed y \
                          --data_dir ${DATA_DIR} --loss_type ${LOSS_TYPE} --max_iters ${MAX_ITERS} \
                          --resume_continue y --resume ./checkpoints/seg/cityscapes/${CHECKPOINTS_NAME}_latest.pth \
                          --checkpoints_name ${CHECKPOINTS_NAME} --pretrained ${PRETRAINED_MODEL}  2>&1 | tee -a ${LOG_FILE}

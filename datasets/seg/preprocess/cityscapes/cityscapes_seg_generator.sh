@@ -4,8 +4,8 @@
 # Generate train & val data.
 
 
-ORI_ROOT_DIR='/home/donny/DataSet/CityScapes'
-SAVE_DIR='/home/donny/DataSet/Cityscapes'
+ORI_ROOT_DIR='/n/pfister_lab2/Lab/xingyu/Dataset/Cityscapes2'
+SAVE_DIR='/n/pfister_lab2/Lab/xingyu/Dataset/Cityscapes2'
 
 
 python cityscapes_seg_generator.py --ori_root_dir $ORI_ROOT_DIR \

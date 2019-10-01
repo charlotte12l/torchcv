@@ -6,12 +6,13 @@
 
 import math
 import os
+import sys
+sys.path.append('/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv')
 from collections import OrderedDict
 import torch
 import torch.nn as nn
 from torch.nn.parallel.scatter_gather import gather as torch_gather
 
-from tools.helper.dist_helper import DistHelper
 from tools.util.logger import Logger as Log
 
 
@@ -21,31 +22,27 @@ class RunnerHelper(object):
     def to_device(runner, in_data):
         device = torch.device('cpu' if runner.configer.get('gpu') is None else 'cuda')
         if isinstance(in_data, (list, tuple)):
-            return [RunnerHelper.to_device(runner, item) for item in in_data]
+            return [item.to(device) if isinstance(item, torch.Tensor) else item for item in in_data]
 
         if isinstance(in_data, dict):
-            return {k: RunnerHelper.to_device(runner, v) for k, v in in_data.items()}
+            return {k: v.to(device) if isinstance(v, torch.Tensor) else v for k, v in in_data.items()}
 
         return in_data.to(device) if isinstance(in_data, torch.Tensor) else in_data
 
     @staticmethod
     def _make_parallel(runner, net):
         if runner.configer.get('network.distributed', default=False):
-            local_rank = runner.configer.get('local_rank')
-            torch.cuda.set_device(local_rank)
-            torch.distributed.init_process_group(backend='nccl', init_method='env://')
+            #print('n1')
+            from apex.parallel import DistributedDataParallel
+            #print('n2')
             if runner.configer.get('network.syncbn', default=False):
                 Log.info('Converting syncbn model...')
-                net = nn.SyncBatchNorm.convert_sync_batchnorm(net)
+                from apex.parallel import convert_syncbn_model
+                net = convert_syncbn_model(net)
 
-            net = nn.parallel.DistributedDataParallel(net.cuda(), find_unused_parameters=True,
-                                                      device_ids=[local_rank], output_device=local_rank)
-            # if runner.configer.get('network.syncbn', default=False):
-            #     Log.info('Converting syncbn model...')
-            #     from apex.parallel import convert_syncbn_model
-            #     net = convert_syncbn_model(net)
-            # from apex.parallel import DistributedDataParallel
-            # net = DistributedDataParallel(net.cuda(), delay_allreduce=True)
+            torch.cuda.set_device(runner.configer.get('local_rank'))
+            torch.distributed.init_process_group(backend='nccl', init_method='env://')
+            net = DistributedDataParallel(net.cuda(), delay_allreduce=True)
             return net
 
         net = net.to(torch.device('cpu' if runner.configer.get('gpu') is None else 'cuda'))
@@ -85,8 +82,9 @@ class RunnerHelper(object):
             if runner.configer.get('network', 'resume_continue'):
                 # runner.configer.resume(resume_dict['config_dict'])
                 runner.runner_state = resume_dict['runner_state']
-
+        #print('6666')
         net = RunnerHelper._make_parallel(runner, net)
+        #print('7777')
         return net
 
     @staticmethod
@@ -227,18 +225,6 @@ class RunnerHelper(object):
 
         else:
             return outputs
-
-    @staticmethod
-    def dist_avg(runner, data):
-        if runner.configer.get('network.distributed'):
-            data_list = DistHelper.all_gather(data)
-            if isinstance(data, dict):
-                return {key:sum([item[key] for item in data_list]) / len(data_list) for key in data}
-
-            if isinstance(data, list):
-                return [sum(sub_list) / len(data_list) for sub_list in zip(data_list)]
-
-            return sum(data_list) / len(data_list)
 
     @staticmethod
     def get_lr(optimizer):

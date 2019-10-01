@@ -15,6 +15,9 @@ from model.det.layers.rpn_target_assigner import RPNTargetAssigner
 from model.det.loss.loss import BASE_LOSS_DICT
 from tools.util.logger import Logger as Log
 
+import sys
+sys.path.append('/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv')
+
 try:
     from exts.ops.roi_pool.modules.roi_pool import RoIPool
 except ImportError:

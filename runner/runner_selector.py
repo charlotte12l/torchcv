@@ -52,10 +52,10 @@ DET_TEST_DICT = {
 }
 
 CLS_METHOD_DICT = {
-    'image_classifier': ImageClassifier,
+    'get_cls_model': ImageClassifier,
 }
 CLS_TEST_DICT = {
-    'image_classifier': ImageClassifierTest,
+    'get_cls_model': ImageClassifierTest,
 }
 
 GAN_METHOD_DICT = {
@@ -101,8 +101,10 @@ class RunnerSelector(object):
             exit(1)
 
         if self.configer.get('phase') == 'train':
+            print('111')
             return SEG_METHOD_DICT[key](self.configer)
         else:
+            print('222')
             return SEG_TEST_DICT[key](self.configer)
 
     def cls_runner(self):

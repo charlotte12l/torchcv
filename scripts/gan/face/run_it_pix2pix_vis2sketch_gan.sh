@@ -4,9 +4,9 @@
 nvidia-smi
 PYTHON="python"
 
-WORK_DIR=$(cd $(dirname $0)/../../../;pwd)
-export PYTHONPATH=${WORK_DIR}:${PYTHONPATH}
-cd ${WORK_DIR}
+export PYTHONPATH="/home/donny/Projects/TorchCV":${PYTHONPATH}
+
+cd ../../../
 
 DATA_DIR="/home/donny/DataSet/GAN/VIS2SKETCH"
 

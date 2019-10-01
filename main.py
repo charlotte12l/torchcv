@@ -4,7 +4,9 @@
 # Main Scripts for computer vision.
 
 
-import os
+import os,sys
+sys.path.append('/n/pfister_lab2/Lab/xingyu/InstanceSeg/torchcv')
+
 import json
 import time
 import random
@@ -81,7 +83,7 @@ if __name__ == "__main__":
                         dest='network.resume_val', help='Whether to validate during resume.')
     parser.add_argument('--gather', type=str2bool, nargs='?', default=True,
                         dest='network.gather', help='Whether to gather the output of model.')
-    parser.add_argument('--dist', type=str2bool, nargs='?', default=False,
+    parser.add_argument('--distributed', type=str2bool, nargs='?', default=False,
                         dest='network.distributed', help='Whether to gather the output of model.')
 
     # ***********  Params for solver.  **********
@@ -89,8 +91,6 @@ if __name__ == "__main__":
                         dest='solver.optim.optim_method', help='The optim method that used.')
     parser.add_argument('--base_lr', default=None, type=float,
                         dest='solver.lr.base_lr', help='The learning rate.')
-    parser.add_argument('--bb_lr_scale', default=1.0, type=float,
-                        dest='solver.lr.bb_lr_scale', help='The learning rate.')
     parser.add_argument('--nbb_mult', default=1.0, type=float,
                         dest='solver.lr.nbb_mult', help='The not backbone mult ratio of learning rate.')
     parser.add_argument('--lr_policy', default=None, type=str,
@@ -133,8 +133,8 @@ if __name__ == "__main__":
     configer = Configer(args_parser=args)
 
     if args.seed is not None:
-        random.seed(args.seed + args.local_rank)
-        torch.manual_seed(args.seed + args.local_rank)
+        random.seed(args.seed)
+        torch.manual_seed(args.seed)
 
     cudnn.enabled = True
     cudnn.benchmark = args.cudnn
@@ -161,28 +161,38 @@ if __name__ == "__main__":
     Log.info('BN Type is {}.'.format(configer.get('network', 'norm_type')))
     Log.info('Config Dict: {}'.format(json.dumps(configer.to_dict(), indent=2)))
 
+    #print('1')
     runner_selector = RunnerSelector(configer)
+    #print('2222')
     runner = None
     if configer.get('task') == 'pose':
         runner = runner_selector.pose_runner()
     elif configer.get('task') == 'seg':
+        #print('3')
         runner = runner_selector.seg_runner()
+        #print('3.6')
     elif configer.get('task') == 'det':
         runner = runner_selector.det_runner()
+        #print('4')
     elif configer.get('task') == 'cls':
         runner = runner_selector.cls_runner()
+        #print('5')
     elif configer.get('task') == 'gan':
         runner = runner_selector.gan_runner()
+        #print('6')
     else:
         Log.error('Task: {} is not valid.'.format(configer.get('task')))
         exit(1)
     if configer.get('phase') == 'train':
+        #print('7')
         if configer.get('network', 'resume') is None or not configer.get('network.resume_continue'):
+            #print('8')
             Controller.init(runner)
-
+        #print('911')
         Controller.train(runner)
     elif configer.get('phase') == 'test' and configer.get('network', 'resume') is not None:
         Controller.test(runner)
+        #print('10')
     else:
         Log.error('Phase: {} is not valid.'.format(configer.get('phase')))
         exit(1)
