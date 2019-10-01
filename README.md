@@ -2,7 +2,7 @@
 
 Here I introduce how I reproduce its Cityscapes result on RC Harvard Clusters.
 
-Note: Seems the [donnyyou](https://github.com/donnyyou) did more modifications and delete the usage of apex. So if you don't want to install apex, I strongly recommend you to fork his [current branch](https://github.com/donnyyou/torchcv).  
+Note: Seems the author [donnyyou](https://github.com/donnyyou) did more modifications and delete the usage of apex. So if you don't want to install apex, I strongly recommend you to fork his [current branch](https://github.com/donnyyou/torchcv).  
 
 ## Installation
 Please install [apex](https://github.com/NVIDIA/apex) first.
