@@ -1,6 +1,6 @@
 # Run on RC 
 
-Here I introduce how I reproduce its Cityscapes result on RC Harvard Clusters.
+Here I introduce how I reproduce its DeepLabV3 Cityscapes results on RC Harvard Clusters.
 
 Note: Seems the author [donnyyou](https://github.com/donnyyou) did more modifications and delete the usage of apex. So if you don't want to install apex, I strongly recommend you to fork his [current repository](https://github.com/donnyyou/torchcv).  
 
