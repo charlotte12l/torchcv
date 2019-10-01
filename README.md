@@ -1,3 +1,37 @@
+# Run on RC 
+
+Here I introduce how I reproduce its Cityscapes result on RC Harvard Clusters.
+
+Note: Seems the [donnyyou](https://github.com/donnyyou) did more modifications and delete the usage of apex. So if you don't want to install apex, I strongly recommend you to fork his [current branch](https://github.com/donnyyou/torchcv).  
+
+## Installation
+Please install apex first.
+
+Now only support Python3.x, pytorch 1.0.
+```bash
+pip3 install -r requirements.txt
+cd extensions
+sh make.sh
+```
+## Pretrained Model
+Please download the pretrained model to pretrained_models/:
+
+[3x3resnet18](http://sceneparsing.csail.mit.edu/model/pretrained_resnet/resnet18-imagenet.pth)
+
+[3x3resnet50](http://sceneparsing.csail.mit.edu/model/pretrained_resnet/resnet50-imagenet.pth)
+
+[3x3resnet101](http://sceneparsing.csail.mit.edu/model/pretrained_resnet/resnet101-imagenet.pth)
+
+## Potential Problems
+- Segmentation Error:
+    - This is often due to the apex installation is not correct. You can change a gcc version and build apex again.
+
+- Path:
+    - I already change the relative paths to absolute paths.
+    
+- Don't forget to use the pretrained model if you want to reproduce the results!
+--------------------------------------------------------------------------------------------------------------------
+
 # TorchCV: A PyTorch-Based Framework for Deep Learning in Computer Vision
 ```
 @misc{you2019torchcv,
